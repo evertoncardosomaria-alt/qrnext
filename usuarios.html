@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Usuários · QR Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="topo">
+  <a class="marca" href="index.html">
+    <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path fill="currentColor" d="M3 3h8v8H3zm2 2v4h4V5zm8-2h8v8h-8zm2 2v4h4V5zM3 13h8v8H3zm2 2v4h4v-4zm8-2h2v2h-2zm2 2h2v2h-2zm2-2h2v2h-2zm2 2h2v2h-2zm-6 2h2v2h-2zm4 0h2v2h-2zm-2 2h2v2h-2zm4 0h2v2h-2z"/></svg>
+    <span>QR Studio</span>
+  </a>
+  <div class="topo-acoes">
+    <a class="btn ghost" href="index.html">← QR Codes</a>
+    <button class="btn primario" id="btnNovoUsuario" hidden>
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg>
+      Novo usuário
+    </button>
+    <div class="menu-usuario" id="menuUsuario"></div>
+  </div>
+</header>
+
+<main class="conteudo estreito">
+  <div class="cabecalho-pagina">
+    <h1>Usuários</h1>
+    <p class="nota">Quem pode entrar no painel e o que cada pessoa pode fazer.</p>
+  </div>
+
+  <div class="papeis-legenda" id="legenda"></div>
+
+  <div class="barra">
+    <div class="filtros" id="filtrosU">
+      <button data-f="todos" class="ativo">Todos</button>
+      <button data-f="admin">Administradores</button>
+      <button data-f="editor">Editores</button>
+      <button data-f="leitor">Visualizadores</button>
+      <button data-f="inativos">Desativados</button>
+    </div>
+    <input type="search" id="buscaU" placeholder="Buscar por nome ou usuário…">
+  </div>
+
+  <div class="lista-usuarios" id="listaU"></div>
+  <div class="carregando" id="carregandoU"><div class="spin"></div>Carregando…</div>
+  <div class="vazio" id="avisoU" hidden></div>
+</main>
+
+<!-- ============ Editor de usuário ============ -->
+<div class="painel-fundo" id="edUsuario" hidden>
+  <div class="painel pequeno" role="dialog" aria-modal="true" aria-labelledby="euTitulo">
+    <header class="painel-topo">
+      <h2 id="euTitulo">Novo usuário</h2>
+      <button class="btn ghost icone" data-fechar aria-label="Fechar">✕</button>
+    </header>
+    <form class="painel-corpo coluna" id="formU" autocomplete="off">
+      <label class="campo">
+        <span>Nome</span>
+        <input name="nome" maxlength="80" placeholder="Ex.: Maria Souza" required>
+      </label>
+      <label class="campo">
+        <span>Usuário (para entrar)</span>
+        <input name="usuario" maxlength="40" autocapitalize="none" spellcheck="false" placeholder="ex.: maria.souza" required>
+        <small id="ajudaUsuario">Letras minúsculas, números, ponto e hífen. Não muda depois de criado.</small>
+      </label>
+
+      <fieldset class="campo papeis-escolha">
+        <span>Papel</span>
+        <div id="escolhaPapel"></div>
+      </fieldset>
+
+      <label class="chave" id="linhaAtivo">
+        <input type="checkbox" name="ativo" checked>
+        <span class="trilho"></span>
+        <span>Pode entrar no painel</span>
+      </label>
+
+      <div class="campo">
+        <span id="rotuloSenha">Senha</span>
+        <div class="senha-linha">
+          <input name="senha" type="text" autocomplete="new-password" spellcheck="false" placeholder="Mínimo 8 caracteres">
+          <button class="btn" type="button" id="btnGerarSenha">Gerar</button>
+          <button class="btn" type="button" id="btnCopiarSenha" title="Copiar senha">Copiar</button>
+        </div>
+        <small id="ajudaSenha">Envie a senha para a pessoa por um canal privado. Ela pode trocar depois em “Trocar minha senha”.</small>
+      </div>
+      <p class="login-erro" id="erroU" hidden></p>
+    </form>
+    <footer class="painel-rodape">
+      <button class="btn perigo ghost" id="btnExcluirU" hidden>Excluir</button>
+      <span class="espaco"></span>
+      <button class="btn ghost" data-fechar>Cancelar</button>
+      <button class="btn primario" id="btnSalvarU">Salvar</button>
+    </footer>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="config.js"></script>
+<script src="auth.js"></script>
+<script src="usuarios.js"></script>
+</body>
+</html>

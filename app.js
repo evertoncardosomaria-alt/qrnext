@@ -7,7 +7,6 @@
   const API = (CFG.API_URL || '').trim();
   const MODO = API ? 'servidor' : 'local';
   const BASE = (CFG.BASE_URL || (location.protocol.startsWith('http') ? location.origin : 'https://seu-site.netlify.app')).replace(/\/+$/, '');
-  const K_CHAVE = 'qrstudio.chave';
   const K_LOCAL = 'qrstudio.dados';
 
   const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -300,16 +299,7 @@
     gravar(d) { lsSet(K_LOCAL, JSON.stringify(d)); },
   };
 
-  async function api(acao, extra) {
-    const r = await fetch(API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(Object.assign({ acao, chave: lsGet(K_CHAVE) || '' }, extra || {})),
-    });
-    const d = await r.json();
-    if (!d.ok) { const err = new Error(d.erro || 'Erro no servidor'); err.chave = /chave/i.test(d.erro || ''); throw err; }
-    return d;
-  }
+  const api = (acao, extra) => Auth.api(acao, extra);
 
   const Store = {
     async carregar() {
@@ -409,8 +399,7 @@
       estado.qrs = (d.qrs || []).map((q) => Object.assign(q, { estilo: normalizar(q.estilo) }));
       estado.padroes = d.padroes || [];
     } catch (err) {
-      if (err.chave) abrirConfig();
-      toast(err.message === 'Failed to fetch' ? 'Não consegui falar com o servidor. Confira a URL em config.js.' : err.message, true);
+      if (!err.sessao) toast(err.message, true);
     }
     $('#carregando').hidden = true;
     renderLista();
@@ -456,12 +445,12 @@
           <div class="card-titulo"><h2>${esc(q.nome || q.code)}</h2><span class="selo ${st.cls}">${esc(st.txt)}</span></div>
           <div class="card-destino">→ <a href="${esc(q.url)}" target="_blank" rel="noopener">${esc(q.url.replace(/^https?:\/\//, ''))}</a></div>
           <button class="card-curto" data-a="copiar" title="Copiar link curto">${esc(linkDe(q.code).replace(/^https?:\/\//, ''))}</button>
-          <div class="card-meta"><span>${(q.leituras || 0).toLocaleString('pt-BR')} leituras</span><span>criado ${fmtData(q.criadoEm, true)}</span></div>
+          <div class="card-meta"><span>${(q.leituras || 0).toLocaleString('pt-BR')} leituras</span><span>criado ${fmtData(q.criadoEm, true)}${q.criadoPor ? ' por ' + esc(q.criadoPor) : ''}</span></div>
         </div>
         <div class="card-acoes">
           <button data-a="editar">Editar</button>
           <button data-a="baixar">Baixar</button>
-          <button data-a="pausar">${q.ativo ? 'Pausar' : 'Ativar'}</button>
+          ${Auth.pode('editar') ? `<button data-a="pausar">${q.ativo ? 'Pausar' : 'Ativar'}</button>` : ''}
         </div>`;
       el.addEventListener('click', (ev) => {
         const a = ev.target.closest('[data-a]');
@@ -521,7 +510,9 @@
     $('#fUrlExp').value = base.urlExpirado || '';
     $('#fZerar').checked = false;
     $('#linhaZerar').hidden = novo;
-    $('#btnExcluir').hidden = novo;
+    $('#btnExcluir').hidden = novo || !Auth.pode('editar');
+    $('#btnSalvar').hidden = !Auth.pode('editar');
+    $('#edTitulo').textContent += Auth.pode('editar') ? '' : ' (somente leitura)';
     $$('.campo input').forEach((i) => i.classList.remove('erro'));
 
     const h = $('#fHistorico');
@@ -723,6 +714,7 @@
   }
 
   async function salvarEditor() {
+    if (!Auth.pode('editar')) return;
     const erro = (id, msg, aba) => { trocarAba(aba); const el = $('#' + id); el.classList.add('erro'); el.focus(); toast(msg, true); };
     $$('.campo input').forEach((i) => i.classList.remove('erro'));
 
@@ -768,34 +760,9 @@
   function abrirConfig() {
     $('#config').hidden = false;
     document.body.style.overflow = 'hidden';
-    const st = $('#cfgStatus');
-    if (MODO === 'local') {
-      st.innerHTML = '<b>Modo demonstração.</b> Os QR Codes ficam só neste navegador e o link curto ainda não redireciona. Para colocar no ar, cole a URL do Apps Script em <code>config.js</code> (veja o LEIAME).';
-      $('#cfgChave').closest('.campo').hidden = true;
-      $('#cfgSalvar').hidden = true; $('#cfgSair').hidden = true;
-    } else {
-      st.textContent = lsGet(K_CHAVE) ? 'Conectado ao servidor. Troque a chave se ela mudou no Apps Script.' : 'Digite sua chave de acesso. No primeiro acesso, a chave que você digitar aqui (mín. 8 caracteres) passa a ser a oficial.';
-      $('#cfgChave').value = lsGet(K_CHAVE) || '';
-      setTimeout(() => $('#cfgChave').focus(), 50);
-    }
-  }
-
-  async function conectar() {
-    const chave = $('#cfgChave').value.trim();
-    if (!chave) return toast('Digite a chave', true);
-    const antiga = lsGet(K_CHAVE);
-    lsSet(K_CHAVE, chave);
-    const b = $('#cfgSalvar');
-    b.disabled = true; b.textContent = 'Conectando…';
-    try {
-      const r = await api('ping');
-      fecharModais();
-      toast(r.chaveCriada ? 'Chave criada — guarde-a: é ela que abre o painel em outros aparelhos' : 'Conectado');
-      carregar();
-    } catch (e) {
-      lsSet(K_CHAVE, antiga);
-      toast(e.message === 'Failed to fetch' ? 'Não achei o servidor. Confira API_URL em config.js e se a implantação é “Qualquer pessoa”.' : e.message, true);
-    } finally { b.disabled = false; b.textContent = 'Conectar'; }
+    $('#cfgStatus').innerHTML = MODO === 'local'
+      ? '<b>Modo demonstração.</b> Os QR Codes ficam só neste navegador e o link curto ainda não redireciona. Para colocar no ar, cole a URL do Apps Script em <code>config.js</code> (veja o LEIAME).'
+      : 'Baixe uma cópia de todos os QR Codes e padrões, ou restaure a partir de um backup.';
   }
 
   function exportar() {
@@ -907,9 +874,6 @@
     }));
 
     // Configurações
-    $('#cfgSalvar').addEventListener('click', conectar);
-    $('#cfgChave').addEventListener('keydown', (ev) => { if (ev.key === 'Enter') conectar(); });
-    $('#cfgSair').addEventListener('click', () => { lsSet(K_CHAVE, null); $('#cfgChave').value = ''; estado.qrs = []; renderLista(); toast('Chave esquecida neste navegador'); });
     $('#cfgExportar').addEventListener('click', exportar);
     $('#cfgImportar').addEventListener('click', () => $('#cfgArquivo').click());
     $('#cfgArquivo').addEventListener('change', (ev) => { if (ev.target.files[0]) importar(ev.target.files[0]); ev.target.value = ''; });
@@ -948,5 +912,6 @@
   // ================= Início =================
   ligar();
   if (MODO === 'local') $('#modoTag').hidden = false;
-  if (MODO === 'servidor' && !lsGet(K_CHAVE)) { renderLista(); abrirConfig(); } else carregar();
+  window.QRToast = toast;
+  Auth.exigirLogin().then(carregar);
 })();

@@ -19,13 +19,14 @@
   </div>
   <div class="topo-acoes">
     <span class="modo" id="modoTag" hidden>Modo demonstração</span>
-    <button class="btn ghost icone" id="btnConfig" title="Configurações" aria-label="Configurações">
+    <button class="btn ghost icone" id="btnConfig" title="Backup" aria-label="Backup">
       <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>
     </button>
-    <button class="btn primario" id="btnNovo">
+    <button class="btn primario so-editor" id="btnNovo">
       <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg>
       Novo QR Code
     </button>
+    <div class="menu-usuario" id="menuUsuario"></div>
   </div>
 </header>
 
@@ -48,7 +49,7 @@
     <div class="vazio-qr" aria-hidden="true"></div>
     <h2>Nenhum QR Code ainda</h2>
     <p>Crie o primeiro. Você pode trocar o link de destino quando quiser, sem reimprimir.</p>
-    <button class="btn primario" id="btnNovoVazio">Criar QR Code</button>
+    <button class="btn primario so-editor" id="btnNovoVazio">Criar QR Code</button>
   </div>
   <div class="carregando" id="carregando" hidden><div class="spin"></div>Carregando…</div>
 </main>
@@ -140,7 +141,7 @@
           <div class="padroes" id="padroesFixos"></div>
           <h3 class="entre">Meus padrões</h3>
           <div class="padroes" id="padroesMeus"></div>
-          <div class="linha-salvar">
+          <div class="linha-salvar so-editor">
             <input id="nomePadrao" placeholder="Nome do padrão (ex.: Marca principal)" maxlength="60">
             <button class="btn" id="btnSalvarPadrao">Salvar estilo atual</button>
           </div>
@@ -278,27 +279,17 @@
 <div class="painel-fundo" id="config" hidden>
   <div class="painel pequeno" role="dialog" aria-modal="true" aria-labelledby="cfgTitulo">
     <header class="painel-topo">
-      <h2 id="cfgTitulo">Conectar ao servidor</h2>
+      <h2 id="cfgTitulo">Backup</h2>
       <button class="btn ghost icone" data-fechar aria-label="Fechar">✕</button>
     </header>
     <div class="painel-corpo coluna">
       <p class="nota" id="cfgStatus"></p>
-      <label class="campo">
-        <span>Chave de acesso</span>
-        <input id="cfgChave" type="password" autocomplete="current-password" placeholder="Mínimo 8 caracteres">
-        <small>Fica salva só neste navegador.</small>
-      </label>
       <div class="acoes-linha">
         <button class="btn" id="cfgExportar">Exportar backup (.json)</button>
-        <button class="btn" id="cfgImportar">Importar backup</button>
+        <button class="btn so-editor" id="cfgImportar">Importar backup</button>
         <input type="file" id="cfgArquivo" accept="application/json" hidden>
       </div>
     </div>
-    <footer class="painel-rodape">
-      <button class="btn ghost" id="cfgSair">Esquecer chave</button>
-      <span class="espaco"></span>
-      <button class="btn primario" id="cfgSalvar">Conectar</button>
-    </footer>
   </div>
 </div>
 
@@ -306,6 +297,7 @@
 
 <script src="config.js"></script>
 <script src="qr-code-styling.js"></script>
+<script src="auth.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
