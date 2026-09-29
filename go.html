@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Abrindo…</title>
+<link rel="preconnect" href="https://script.google.com">
+<link rel="preconnect" href="https://script.googleusercontent.com">
+<style>
+  :root { --bg:#f6f5f2; --fg:#1b1b1f; --muted:#6b6b76; --accent:#4f46e5; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#111114; --fg:#f1f1f4; --muted:#9b9ba6; --accent:#8b85ff; } }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--fg);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { min-height:100%; display:grid; place-items:center; padding:24px 16px; text-align:center; }
+  .spin { width:36px; height:36px; border-radius:50%; border:3px solid color-mix(in srgb, var(--fg) 12%, transparent);
+    border-top-color:var(--accent); animation:g .8s linear infinite; margin:0 auto 16px; }
+  @keyframes g { to { transform:rotate(360deg); } }
+  h1 { font-size:22px; margin:0 0 8px; letter-spacing:-.01em; }
+  p { margin:0 auto; color:var(--muted); max-width:34ch; }
+  .ico { font-size:40px; margin-bottom:12px; }
+  a.btn { display:inline-block; margin-top:20px; padding:10px 18px; border-radius:10px; background:var(--accent);
+    color:#fff; text-decoration:none; font-weight:600; }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<main>
+  <div id="carregando">
+    <div class="spin" aria-hidden="true"></div>
+    <p>Abrindo o link…</p>
+  </div>
+  <div id="aviso" hidden>
+    <div class="ico" id="avisoIco" aria-hidden="true"></div>
+    <h1 id="avisoTitulo"></h1>
+    <p id="avisoTexto"></p>
+    <a class="btn" id="avisoBtn" href="" hidden>Tentar de novo</a>
+  </div>
+</main>
+<script src="/config.js"></script>
+<script>
+(function () {
+  var cfg = window.QR_CONFIG || {};
+  var m = location.pathname.match(/\/q\/([^\/?#]+)/);
+  var code = m ? decodeURIComponent(m[1]) : new URLSearchParams(location.search).get('c');
+
+  var MSG = {
+    nao_encontrado: ['🔍', 'QR Code não encontrado', 'Este código não existe ou foi removido.'],
+    pausado: ['⏸️', 'QR Code pausado', 'Este QR Code está temporariamente desativado.'],
+    expirado: ['⌛', 'Este QR Code expirou', 'O prazo de validade deste QR Code terminou.'],
+    limite: ['⌛', 'Este QR Code expirou', 'Ele atingiu o número máximo de leituras.'],
+    erro: ['⚠️', 'Não foi possível abrir', 'Verifique sua conexão e tente de novo.'],
+    config: ['⚙️', 'QR Code ainda não configurado', 'O endereço do servidor não foi definido.'],
+  };
+
+  function mostrar(motivo) {
+    var t = MSG[motivo] || MSG.erro;
+    document.getElementById('carregando').hidden = true;
+    document.getElementById('aviso').hidden = false;
+    document.getElementById('avisoIco').textContent = t[0];
+    document.getElementById('avisoTitulo').textContent = t[1];
+    document.getElementById('avisoTexto').textContent = t[2];
+    document.title = t[1];
+    if (motivo === 'erro') {
+      var b = document.getElementById('avisoBtn');
+      b.hidden = false;
+      b.href = location.href;
+    }
+  }
+
+  if (!code) return mostrar('nao_encontrado');
+  if (!cfg.API_URL) return mostrar('config');
+
+  var url = cfg.API_URL + '?id=' + encodeURIComponent(code) + '&ua=' + encodeURIComponent(navigator.userAgent.slice(0, 200));
+  fetch(url, { redirect: 'follow' })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (d && d.ok && /^https?:\/\//i.test(d.url)) location.replace(d.url);
+      else mostrar(d && d.motivo);
+    })
+    .catch(function () { mostrar('erro'); });
+})();
+</script>
+</body>
+</html>
