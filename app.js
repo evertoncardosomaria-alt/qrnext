@@ -387,7 +387,7 @@
   }
 
   // ================= Estado =================
-  const estado = { qrs: [], padroes: [], filtro: 'todos', busca: '' };
+  const estado = { qrs: [], padroes: [], filtro: 'todos', busca: '', dono: '' };
   const miniCache = new Map();
 
   async function carregar() {
@@ -420,13 +420,30 @@
     });
   }
 
+  // Administrador vê tudo e pode filtrar por dono; os demais só recebem os próprios QR Codes.
+  function renderFiltroDono() {
+    const sel = $('#filtroDono');
+    if (!Auth.pode('usuarios') || MODO === 'local') { sel.hidden = true; return; }
+    const donos = [...new Set(estado.qrs.map((q) => q.criadoPor).filter(Boolean))].sort();
+    const eu = Auth.eu.usuario;
+    const semDono = estado.qrs.some((q) => !q.criadoPor);
+    sel.innerHTML = '<option value="">Todos os donos</option>' +
+      `<option value="${esc(eu)}">Só os meus</option>` +
+      donos.filter((d) => d !== eu).map((d) => `<option value="${esc(d)}">@${esc(d)}</option>`).join('') +
+      (semDono ? '<option value="-">Sem dono (criados antes do login)</option>' : '');
+    if ([...sel.options].some((o) => o.value === estado.dono)) sel.value = estado.dono; else estado.dono = '';
+    sel.hidden = false;
+  }
+
   function renderLista() {
+    renderFiltroDono();
     renderResumo();
     const g = $('#grade');
     const busca = estado.busca.toLowerCase();
     const lista = estado.qrs
       .filter((q) => estado.filtro === 'todos' || status(q).id === estado.filtro)
-      .filter((q) => !busca || [q.nome, q.code, q.url].join(' ').toLowerCase().includes(busca))
+      .filter((q) => !estado.dono || (estado.dono === '-' ? !q.criadoPor : q.criadoPor === estado.dono))
+      .filter((q) => !busca || [q.nome, q.code, q.url, q.criadoPor].join(' ').toLowerCase().includes(busca))
       .sort((a, b) => String(b.atualizadoEm).localeCompare(String(a.atualizadoEm)));
 
     $('#vazio').hidden = estado.qrs.length > 0;
@@ -445,7 +462,7 @@
           <div class="card-titulo"><h2>${esc(q.nome || q.code)}</h2><span class="selo ${st.cls}">${esc(st.txt)}</span></div>
           <div class="card-destino">→ <a href="${esc(q.url)}" target="_blank" rel="noopener">${esc(q.url.replace(/^https?:\/\//, ''))}</a></div>
           <button class="card-curto" data-a="copiar" title="Copiar link curto">${esc(linkDe(q.code).replace(/^https?:\/\//, ''))}</button>
-          <div class="card-meta"><span>${(q.leituras || 0).toLocaleString('pt-BR')} leituras</span><span>criado ${fmtData(q.criadoEm, true)}${q.criadoPor ? ' por ' + esc(q.criadoPor) : ''}</span></div>
+          <div class="card-meta"><span>${(q.leituras || 0).toLocaleString('pt-BR')} leituras</span><span>criado ${fmtData(q.criadoEm, true)}${Auth.pode('usuarios') ? ' por ' + (q.criadoPor ? '@' + esc(q.criadoPor) : 'ninguém (antigo)') : ''}</span></div>
         </div>
         <div class="card-acoes">
           <button data-a="editar">Editar</button>
@@ -809,6 +826,7 @@
       renderLista();
     });
     $('#busca').addEventListener('input', debounce((ev) => { estado.busca = ev.target.value; renderLista(); }, 150));
+    $('#filtroDono').addEventListener('change', (ev) => { estado.dono = ev.target.value; renderLista(); });
 
     $('#abas').addEventListener('click', (ev) => { const b = ev.target.closest('button'); if (b) trocarAba(b.dataset.aba); });
     $('#fTipo').addEventListener('click', (ev) => { const b = ev.target.closest('button'); if (b) setTipo(b.dataset.v); });

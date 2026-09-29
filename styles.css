@@ -346,7 +346,7 @@ body[data-papel="leitor"] .so-editor { display: none !important; }
 .conteudo.estreito { max-width: 920px; }
 .cabecalho-pagina { margin-bottom: 18px; }
 .cabecalho-pagina h1 { font-size: 24px; margin: 0 0 2px; letter-spacing: -.02em; }
-.papeis-legenda { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+.papeis-legenda { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
 .legenda-item { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; background: var(--sup); border: 1px solid var(--linha); border-radius: var(--raio); padding: 12px 14px; font-size: 13px; color: var(--muted); }
 .selo.papel-admin { color: var(--accent); background: var(--accent-suave); }
 .selo.papel-editor { color: var(--ok); background: var(--ok-suave); }
@@ -389,3 +389,8 @@ fieldset.papeis-escolha { border: 0; padding: 0; margin: 0; }
 .papel-opcao input { width: auto !important; height: auto !important; padding: 0 !important; }
 a.btn { text-decoration: none; color: inherit; }
 a.btn.primario { color: var(--accent-fg); }
+
+.barra-direita { display: flex; gap: 8px; flex: 0 1 520px; justify-content: flex-end; }
+.barra-direita #busca { flex: 1 1 260px; }
+#filtroDono { height: 38px; border-radius: 10px; border: 1px solid var(--linha); background: var(--sup); padding: 0 10px; max-width: 220px; }
+@media (max-width: 560px) { .barra-direita { flex: 1 1 100%; flex-wrap: wrap; } #filtroDono { max-width: none; flex: 1 1 100%; } }

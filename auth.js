@@ -13,9 +13,8 @@
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   const PAPEIS = {
-    admin: { nome: 'Administrador', desc: 'Tudo, inclusive gerenciar usuários' },
-    editor: { nome: 'Editor', desc: 'Cria, edita, pausa e exclui QR Codes' },
-    leitor: { nome: 'Visualizador', desc: 'Só vê e baixa os QR Codes' },
+    admin: { nome: 'Administrador', desc: 'Vê e gerencia os QR Codes de todos, e cadastra usuários' },
+    editor: { nome: 'Usuário', desc: 'Vê e gerencia só os QR Codes que ele mesmo criou' },
   };
 
   let eu = null;

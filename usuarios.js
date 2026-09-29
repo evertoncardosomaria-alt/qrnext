@@ -72,6 +72,7 @@
         </div>
         <span class="selo papel-${esc(u.papel)}">${esc(PAPEIS[u.papel] ? PAPEIS[u.papel].nome : u.papel)}</span>
         <div class="usuario-meta">
+          <b>${u.qrs || 0}</b> QR Code${u.qrs === 1 ? '' : 's'}<br>
           ${u.ativo ? (u.ultimoAcesso ? 'Último acesso ' + fmtData(u.ultimoAcesso) : 'Ainda não entrou') : '<span class="selo pausa">Desativado</span>'}
         </div>
         <button class="btn ghost" data-editar>Editar</button>
@@ -156,7 +157,7 @@
 
   async function excluir() {
     const u = ed.usuario;
-    if (!confirm(`Excluir @${u.usuario} (${u.nome})? A pessoa perde o acesso na hora. Os QR Codes que ela criou continuam.`)) return;
+    if (!confirm(`Excluir @${u.usuario} (${u.nome})? A pessoa perde o acesso na hora. Os ${u.qrs || 0} QR Code(s) que ela criou continuam funcionando e ficam visíveis só para administradores.`)) return;
     try {
       await Auth.api('excluirUsuario', { login: u.usuario });
       estado.usuarios = estado.usuarios.filter((x) => x.usuario !== u.usuario);
